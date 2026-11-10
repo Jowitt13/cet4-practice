@@ -5,12 +5,12 @@
 <meta name="color-scheme" content="light dark"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self' blob: data:; connect-src 'self'; font-src 'none'; object-src 'none'">
 <title>CET-4 — 在线练习</title>
 <script>try{if(JSON.parse(localStorage.getItem('cet4.paper.v2.preferences'))?.theme==='dark')document.documentElement.dataset.theme='dark'}catch{}</script>
-<link rel="stylesheet" href="./assets/app.30b35b7ea591.css">
+<link rel="stylesheet" href="./assets/app.0c6897262278.css">
 </head>
 <body>
 <section id="opening-cover" class="opening-cover" data-phase="loading" aria-label="CET-4 入口封面" hidden>
  <div class="opening-documents" aria-hidden="true"><img data-cover-src="./opening/5661d39679e9483e74ad7b4fad9268a68c835faec7168bfe5b294a221b49a3d5.jpg" alt="" decoding="async" draggable="false" style="--paper-x:-5px;--paper-turn:-0.35deg"><img data-cover-src="./opening/7b6502a3ad045c191b68bbcfaca8337ad4ded2758b96c839bb39e49423ce6ba3.jpg" alt="" decoding="async" draggable="false" style="--paper-x:4px;--paper-turn:0.25deg"><img data-cover-src="./opening/4517d0993642432e3322be44a165953bdb93489e1babc0ede246df891326c992.jpg" alt="" decoding="async" draggable="false" style="--paper-x:-3px;--paper-turn:-0.15deg"><img data-cover-src="./opening/ad4661a991eb37079f8175d752a4a49c80cb45c5880c1eb96c75fcd637395306.jpg" alt="" decoding="async" draggable="false" style="--paper-x:2px;--paper-turn:0.3deg"><img data-cover-src="./opening/fecabdd6198dd05ff040102c5e0f028ec3daf30de17a3ce2a163344b25695801.jpg" alt="" decoding="async" draggable="false" style="--paper-x:0px;--paper-turn:-0.2deg"><img data-cover-src="./opening/87c07c4576fea244a922a4bac989904de48be7968b56e80d097144c5d1d1c373.jpg" alt="" decoding="async" draggable="false" style="--paper-x:5px;--paper-turn:0.15deg"><img data-cover-src="./opening/31b189267bd03a2a36f289458d360fcdd34d8f760ecafae092de97d46fe474dd.jpg" alt="" decoding="async" draggable="false" style="--paper-x:-2px;--paper-turn:0deg"></div>
- <svg class="opening-redactions" viewBox="0 0 600 320" aria-hidden="true" focusable="false">
+ <svg class="opening-redactions" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" focusable="false">
   <rect x="72" y="14" width="322" height="19"/><rect x="182" y="48" width="287" height="19"/>
   <rect x="38" y="82" width="267" height="19"/><rect x="122" y="116" width="348" height="19"/>
   <rect x="200" y="150" width="342" height="19"/><rect x="55" y="184" width="300" height="19"/>
@@ -30,7 +30,8 @@
  const inertBefore=new Map();let active=false,ready=false,phase='loading',raf=0,epoch=0,runCount=0,index=0,previousFocus=null,previousY=0,transitionTimer=0,frameLog=[];
  function setPhase(value){phase=value;cover.dataset.phase=value}
  function lock(value){for(const el of [document.querySelector('.appbar'),document.getElementById('app')])if(el){if(value){if(!inertBefore.has(el))inertBefore.set(el,el.inert);el.inert=true}else if(inertBefore.has(el)){el.inert=inertBefore.get(el);inertBefore.delete(el)}}}
- function setFrame(i,elapsed=0){frames.forEach((f,n)=>f.classList.toggle('is-current',n===i));index=i;frameLog.push({index:i,elapsed:Math.round(elapsed)})}
+ function scatterBars(){if(reduced.matches)return;for(const r of cover.querySelectorAll('.opening-redactions rect')){const width=110+Math.random()*230;let y;do{y=60+Math.random()*840}while(y>400&&y<670);r.setAttribute('x',String(Math.round(30+Math.random()*(940-width))));r.setAttribute('y',String(Math.round(y)));r.setAttribute('width',String(Math.round(width)));r.setAttribute('height',String(Math.round(13+Math.random()*9)))}}
+ function setFrame(i,elapsed=0){scatterBars();frames.forEach((f,n)=>f.classList.toggle('is-current',n===i));index=i;frameLog.push({index:i,elapsed:Math.round(elapsed)})}
  function restoreImages(){frames.forEach(f=>{if(!f.hasAttribute('src'))f.src=f.dataset.coverSrc});return Promise.allSettled(frames.map(f=>f.decode?.()||Promise.resolve()))}
  function stop(){cancelAnimationFrame(raf);raf=0;epoch++}
  function finish(){if(phase==='leaving')return;stop();if(!active)return;setPhase(ready?'ready':'loading');replayButton.disabled=!ready||reduced.matches;replayButton.title=reduced.matches?'已按系统设置减少动态效果':''}
@@ -38,11 +39,11 @@
  function show(){stop();clearTimeout(transitionTimer);if(!active){previousFocus=document.activeElement;previousY=scrollY}active=true;cover.hidden=false;cover.inert=false;document.documentElement.classList.add('opening-active');lock(true);document.querySelectorAll('audio').forEach(a=>a.pause());if(!frames[0].hasAttribute('src'))frames[0].src=frames[0].dataset.coverSrc;setFrame(0);setPhase(ready?'ready':'loading');enterButton.disabled=!ready;replayButton.disabled=!ready||reduced.matches;if(ready){enterButton.textContent='进入练习';progress.hidden=true;replay()}cover.querySelector('h1').focus({preventScroll:true})}
  function enter(){if(!active||!ready||phase==='leaving')return;stop();setPhase('leaving');cover.inert=true;document.documentElement.classList.remove('opening-active');lock(false);transitionTimer=setTimeout(()=>{if(phase!=='leaving')return;cover.hidden=true;active=false;setPhase('entered');frames.forEach(f=>f.removeAttribute('src'));window.scrollTo({top:previousY,behavior:'instant'});const target=previousFocus?.isConnected&&previousFocus!==document.body?previousFocus:document.querySelector('.simple-mode-card');target?.focus({preventScroll:true})},reduced.matches?0:230)}
  function reportProgress(done,total){if(ready)return;const value=Math.max(0,Math.min(1,done/total));progress.value=value;enterButton.textContent='正在准备题库 '+Math.round(value*100)+'%'}
- function mountHomeLink(){const root=document.querySelector('#app .simple-home .home-record-links');if(root&&!root.querySelector('[data-open-cover]')){const b=document.createElement('button');b.className='opening-home-link';b.dataset.openCover='';b.type='button';b.textContent='封面';b.setAttribute('aria-label','重看开场封面');root.append(b)}}
- enterButton.addEventListener('click',enter);replayButton.addEventListener('click',replay);document.addEventListener('click',e=>{if(e.target.closest('[data-open-cover]'))show()});document.addEventListener('keydown',e=>{if(active&&e.key==='Escape'){e.preventDefault();finish();if(ready)enterButton.focus({preventScroll:true})}});document.addEventListener('visibilitychange',()=>{if(active&&document.hidden)finish()});reduced.addEventListener('change',()=>{if(active&&reduced.matches)finish();replayButton.disabled=!ready||reduced.matches});
+
+ enterButton.addEventListener('click',enter);replayButton.addEventListener('click',replay);document.addEventListener('keydown',e=>{if(active&&e.key==='Escape'){e.preventDefault();finish();if(ready)enterButton.focus({preventScroll:true})}});document.addEventListener('visibilitychange',()=>{if(active&&document.hidden)finish()});reduced.addEventListener('change',()=>{if(active&&reduced.matches)finish();replayButton.disabled=!ready||reduced.matches});
  cover.querySelectorAll('.opening-redactions rect').forEach((r,i)=>r.style.setProperty('--bar-order',i));
  window.CET4_OPENING={show,replay,enter,finish,progress:reportProgress,get state(){return{active,ready,phase,index,runCount,reducedMotion:reduced.matches,silent:true,durationMs:settings.durationMs,frameLog:[...frameLog]}}};
- document.addEventListener('DOMContentLoaded',()=>{ready=true;lock(active);enterButton.disabled=false;enterButton.textContent='进入练习';progress.hidden=true;replayButton.disabled=reduced.matches;mountHomeLink();const app=document.getElementById('app');if(app)new MutationObserver(mountHomeLink).observe(app,{childList:true});if(active)replay()},{once:true});
+ document.addEventListener('DOMContentLoaded',()=>{ready=true;lock(active);enterButton.disabled=false;enterButton.textContent='进入练习';progress.hidden=true;replayButton.disabled=reduced.matches;if(active)replay()},{once:true});
  show();
 })();
 </script>
@@ -58,7 +59,7 @@
 <script src="./data/catalog-data.1fbb4dc72c21.js" defer></script>
 <script src="./data/study-data.6043dda46efe.js" defer></script>
 <script src="./data/active-data.cf7927fbc52c.js" defer></script>
-<script src="./assets/app.0acc9430983d.js" defer></script>
+<script src="./assets/app.7e110a4ab4f9.js" defer></script>
 <!-- Media is loaded on demand from this same website. -->
 
 </body></html>
