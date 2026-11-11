@@ -1,10 +1,11 @@
 {
-  "version": "37cde4ac4626",
+  "version": "0ea02a55322c",
   "sourceRecords": 76,
   "fullMocks": 45,
   "sharedScopes": 406,
   "mediaCount": 537,
   "openingFrames": 7,
   "localRecordsOnly": true,
+  "lazyPaperContent": true,
   "source": "accepted CET-4 offline UI"
 }

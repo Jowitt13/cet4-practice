@@ -5,7 +5,7 @@
 <meta name="color-scheme" content="light dark"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self' blob: data:; connect-src 'self'; font-src 'none'; object-src 'none'">
 <title>CET-4 — 在线练习</title>
 <script>try{if(JSON.parse(localStorage.getItem('cet4.paper.v2.preferences'))?.theme==='dark')document.documentElement.dataset.theme='dark'}catch{}</script>
-<link rel="stylesheet" href="./assets/app.7f17330fc6a1.css">
+<link rel="stylesheet" href="./assets/app.b50c954d7505.css"><link rel="preload" as="script" href="./assets/app.b2e474554aed.js">
 </head>
 <body>
 <section id="opening-cover" class="opening-cover" data-phase="loading" data-scene="0" aria-label="CET-4 入口封面" hidden>
@@ -20,7 +20,7 @@
   <div class="opening-part-track"><span data-opening-part="0">I</span><span data-opening-part="1">II</span><span data-opening-part="2">III</span><span data-opening-part="3">IV</span></div>
  </div>
  <div class="opening-content"><h1 id="opening-title" tabindex="-1">CET-4</h1></div>
- <div class="opening-entry"><button id="opening-enter" class="primary" type="button" disabled><span class="opening-enter-label">正在准备题库…</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button><progress id="opening-progress" max="1" value="0" aria-label="题库准备进度"></progress></div>
+ <div class="opening-entry"><button id="opening-enter" class="primary" type="button" disabled><span class="opening-enter-label">正在准备题库…</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button><progress id="opening-progress" max="1" value="0" aria-label="题库准备进度"></progress><section class="web-boot-status" id="web-boot-status" hidden><p id="web-boot-message"></p><button type="button" id="web-boot-retry" hidden>重新加载</button></section></div>
  <button id="opening-replay" class="opening-replay" type="button" disabled>重播</button>
 </section>
 <script id="opening-settings" type="application/json">{"durationMs": 3200, "settleMs": 2700, "frameStepMs": 360}</script>
@@ -41,7 +41,7 @@
  function reportProgress(done,total){if(ready)return;const value=Math.max(0,Math.min(1,done/total));progress.value=value;enterLabel.textContent='正在准备题库 '+Math.round(value*100)+'%'}
  enterButton.addEventListener('click',enter);replayButton.addEventListener('click',replay);document.addEventListener('keydown',e=>{if(active&&e.key==='Escape'){e.preventDefault();finish();if(ready)enterButton.focus({preventScroll:true})}});document.addEventListener('visibilitychange',()=>{if(active&&document.hidden)finish()});reduced.addEventListener('change',()=>{if(active&&reduced.matches)finish();replayButton.disabled=!ready||reduced.matches});
  window.CET4_OPENING={show,replay,enter,finish,progress:reportProgress,get state(){return{active,ready,phase,index,scene,runCount,reducedMotion:reduced.matches,silent:true,durationMs:settings.durationMs,frameLog:[...frameLog],sceneLog:[...sceneLog]}}};
- document.addEventListener('DOMContentLoaded',()=>{ready=true;lock(active);enterButton.disabled=false;enterLabel.textContent='进入练习';progress.hidden=true;replayButton.disabled=reduced.matches;if(active)replay()},{once:true});
+ function onAppReady(){if(!window.CET4_READY||ready)return;ready=true;lock(active);enterButton.disabled=false;enterLabel.textContent='进入练习';progress.hidden=true;replayButton.disabled=reduced.matches;if(active)replay()}document.addEventListener('DOMContentLoaded',()=>lock(active),{once:true});document.addEventListener('cet4:ready',onAppReady,{once:true});onAppReady();
  show();
 })();
 </script>
@@ -54,10 +54,35 @@
 <script id="exam-data" type="application/json"></script>
 <script id="study-data" type="application/json"></script>
 <script id="active-data" type="application/json"></script>
-<script src="./data/catalog-data.20a7b35c52de.js" defer></script>
-<script src="./data/study-data.6043dda46efe.js" defer></script>
-<script src="./data/active-data.cf7927fbc52c.js" defer></script>
-<script src="./assets/app.38000cd1fe02.js" defer></script>
-<!-- Media is loaded on demand from this same website. -->
+<script id="web-manifest" type="application/json"></script><script id="web-boot-config" type="application/json">{"bootstrap":{"url":"data/bootstrap.637c53c8875e.json","bytes":640697,"sha256":"637c53c8875e350329c84c52cf44c11a38d147d9ae192f7ae8676371fc3cbd35"},"app":"assets/app.b2e474554aed.js"}</script><script>/* Small, independent startup controller. It can report a failure before the app exists. */
+(()=>{'use strict';
+ const config=JSON.parse(document.getElementById('web-boot-config').textContent),status=document.getElementById('web-boot-status'),message=document.getElementById('web-boot-message'),retry=document.getElementById('web-boot-retry');
+ let phase='idle',attempt=0,appAttempted=false;const failedURLs=new Set();
+ const sameOrigin=value=>{const u=new URL(value,document.baseURI);if(u.origin!==location.origin)throw Error('资源地址无效');return u.href};
+ async function readJSON(info){
+  if(!info||typeof info.url!=='string'||!Number.isInteger(info.bytes)||!/^[a-f0-9]{64}$/.test(info.sha256))throw Error('资源配置无效');
+  const url=sameOrigin(info.url),controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),20000);
+  try{
+   const response=await fetch(url,{signal:controller.signal,credentials:'same-origin',cache:failedURLs.has(url)?'reload':'default'});if(!response.ok)throw Error('资源暂不可用');
+   const body=await response.arrayBuffer();if(body.byteLength!==info.bytes)throw Error('资源未完整下载');
+   const digest=[...new Uint8Array(await crypto.subtle.digest('SHA-256',body))].map(b=>b.toString(16).padStart(2,'0')).join('');if(digest!==info.sha256)throw Error('资源版本不一致');
+   const value=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(body));failedURLs.delete(url);return value;
+  }catch(e){failedURLs.add(url);if(e.name==='AbortError')throw Error('连接超时');throw e}finally{clearTimeout(timeout)}
+ }
+ function fail(){phase='error';status.hidden=false;message.setAttribute('role','alert');message.textContent='题库目录未能加载，请检查网络后重试。';retry.hidden=false;retry.disabled=false;document.getElementById('opening-enter').disabled=true;document.querySelector('.opening-enter-label').textContent='尚未准备完成';retry.focus({preventScroll:true})}
+ function script(url){return new Promise((resolve,reject)=>{const node=document.createElement('script');node.src=sameOrigin(url);node.async=true;const timeout=setTimeout(()=>{node.remove();reject(Error('页面加载超时'))},20000);node.onload=()=>{clearTimeout(timeout);resolve()};node.onerror=()=>{clearTimeout(timeout);node.remove();reject(Error('页面文件未能加载'))};document.head.append(node)})}
+ async function start(){
+  if(phase==='loading'||phase==='ready')return;if(appAttempted){location.reload();return}phase='loading';attempt++;status.hidden=true;retry.disabled=true;message.removeAttribute('role');
+  try{
+   const data=await readJSON(config.bootstrap);if(data.schema!=='cet4.web.bootstrap.v1'||!Array.isArray(data.catalog)||data.catalog.length!==76||new Set(data.catalog.map(e=>e.setId)).size!==76||!data.study?.sets||!data.active?.dictation||!data.manifest?.sets)throw Error('题库目录无效');
+   for(const [id,value]of [['exam-data',data.catalog],['study-data',data.study],['active-data',data.active],['web-manifest',data.manifest]])document.getElementById(id).textContent=JSON.stringify(value);
+   window.CET4_OPENING?.progress(1,2);appAttempted=true;await script(config.app);if(!window.CET4_READY)throw Error('页面未能准备完成');phase='ready';status.hidden=true;
+  }catch(e){if(window.CET4_READY){phase='ready';status.hidden=true;return}fail()}
+ }
+ document.addEventListener('cet4:ready',()=>{phase='ready';status.hidden=true},{once:true});retry.addEventListener('click',start);
+ window.CET4_BOOT={readJSON,get state(){return{phase,attempt,appAttempted}}};start();
+})();
+</script>
+<!-- Media and full paper text are loaded on demand from this same website. -->
 
 </body></html>
