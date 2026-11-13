@@ -10,5 +10,7 @@
   "source": "accepted CET-4 offline UI",
   "authorCredit": "作者：敲两下看看  |  抖音 & 小红书ID：JowittTaps",
   "authorCreditRevision": "6f4de15f9af8",
-  "authorCreditPosition": "between-brand-and-toolbar"
+  "authorCreditPosition": "between-brand-and-toolbar",
+  "visualRevision": "3401fd830c6c",
+  "decorativeDividersRemoved": true
 }
