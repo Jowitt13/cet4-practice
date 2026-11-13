@@ -11,6 +11,7 @@
   "authorCredit": "作者：敲两下看看  |  抖音 & 小红书ID：JowittTaps",
   "authorCreditRevision": "6f4de15f9af8",
   "authorCreditPosition": "between-brand-and-toolbar",
-  "visualRevision": "3401fd830c6c",
-  "decorativeDividersRemoved": true
+  "visualRevision": "45b19ae355be",
+  "decorativeDividersRemoved": true,
+  "questionMarkToolbarRemoved": true
 }
