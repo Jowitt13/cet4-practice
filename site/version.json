@@ -1,5 +1,5 @@
 {
-  "version": "0ea02a55322c",
+  "version": "45b19ae355be",
   "sourceRecords": 76,
   "fullMocks": 45,
   "sharedScopes": 406,
@@ -13,5 +13,6 @@
   "authorCreditPosition": "between-brand-and-toolbar",
   "visualRevision": "45b19ae355be",
   "decorativeDividersRemoved": true,
-  "questionMarkToolbarRemoved": true
+  "questionMarkToolbarRemoved": true,
+  "contentVersion": "0ea02a55322c"
 }
