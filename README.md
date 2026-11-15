@@ -1,6 +1,10 @@
-# CET-4 在线练习
+# CET-4 / CET-6 在线练习
 
 [打开在线题库](https://jowitt13.github.io/cet4-practice/)
+
+[四级在线练习](https://cet4.camerashowfusion.cloud/) · [六级在线练习](https://cet4.camerashowfusion.cloud/cet6/)
+
+六级入口包含27套已验收完整模考，题目按卷加载、音频按需播放。未验收候选及待制作专项不在本次发布范围。四级内容和原入口保持。
 
 完整模考、专项练习、错题复习，以及本地保存的成绩、批注、听写和写作修订。
 

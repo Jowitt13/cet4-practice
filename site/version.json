@@ -16,5 +16,11 @@
   "questionMarkToolbarRemoved": true,
   "contentVersion": "0ea02a55322c",
   "dictationEntryRevision": "2c14e4467a14",
-  "dictationAfterSubmissionOnlyForFullMock": true
+  "dictationAfterSubmissionOnlyForFullMock": true,
+  "cet6": {
+    "url": "./cet6/",
+    "acceptedFullMocks": 27,
+    "practice": 0,
+    "publishedAt": "2026-11-15"
+  }
 }
