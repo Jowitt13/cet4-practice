@@ -1,7 +1,7 @@
 {
   "examType": "CET6",
   "fullMocks": 27,
-  "practice": 20,
+  "practice": 34,
   "releaseDate": "2026-11-15",
   "author": "敲两下看看",
   "socialId": "JowittTaps",
@@ -11,5 +11,8 @@
   "displayHeaderCorrections": 20,
   "wordBankDisplayAliases": 60,
   "practiceUrl": "./practice/",
-  "practicePublishedAt": "2026-11-22"
+  "practicePublishedAt": "2026-11-22",
+  "legacyFullMocks": 15,
+  "fullMocksTotal": 42,
+  "legacyFullMocksUrl": "./practice/#full"
 }

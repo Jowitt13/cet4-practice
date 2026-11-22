@@ -10,6 +10,98 @@
   let record;
   let part;
   let state;
+  let mock;
+  let clock;
+  const fullKey = id => 'cet6.legacy.mock.v1.'+id;
+
+  function loadMock(id) {
+    try {
+      const m=JSON.parse(localStorage.getItem(fullKey(id)));
+      if(m && typeof m.parts==='object' && m.parts) return m;
+    } catch {}
+    return {parts:{},deadline:null,submitted:false,skipListening:false};
+  }
+
+  function saveMock() {
+    try {
+      localStorage.setItem(fullKey(record.id),JSON.stringify(mock));
+      status.textContent='已保存到当前浏览器';
+    } catch {
+      status.textContent='当前浏览器无法保存，刷新后本次作答可能丢失';
+    }
+  }
+
+  function commitMock() {
+    mock.submitted=true;
+    mock.deadline=null;
+    for(const section of Object.values(mock.parts)) section.submitted=true;
+    state.submitted=true;
+    saveMock();
+    route();
+  }
+
+  function mockHeader() {
+    const panel=element('section',undefined,'mock-panel');
+    const nav=element('nav',undefined,'part-links');
+    nav.setAttribute('aria-label','模考部分');
+    for(const p of record.parts) {
+      if(p.id==='L' && mock.skipListening) continue;
+      const link=element('a',labels[p.id]);
+      link.href='#mock/'+record.id+'/'+p.id;
+      if(p.id===part.id) link.setAttribute('aria-current','page');
+      nav.append(link);
+    }
+    panel.append(nav);
+    if(mock.submitted) {
+      let total=0, base=0, pending=0;
+      const breakdown=element('ul',undefined,'score-parts');
+      for(const p of record.parts) {
+        if(p.id==='L' && mock.skipListening) continue;
+        const saved=mock.parts[p.id];
+        const max=p.questions?p.questions.reduce((sum,q)=>sum+q.weight,0):106.5;
+        const points=p.questions?p.questions.reduce((sum,q)=>sum+(saved?.answers?.[q.n]===q.answer?q.weight:0),0):saved?.rating?saved.rating*7.1:null;
+        total+=points??0; base+=max;
+        if(points===null)pending++;
+        breakdown.append(element('li',labels[p.id]+' '+(points===null?'待自评':format(points)+' / '+format(max))));
+      }
+      panel.append(element('p', (pending?'已计分 ':'')+format(total)+' / '+format(base)+' 分','score'),breakdown);
+      return panel;
+    }
+    const actions=element('div',undefined,'mock-actions');
+    const clockText=element('output','130:00','countdown');
+    clockText.setAttribute('aria-label','模考剩余时间');
+    const refreshClock=()=>{
+      if(!mock || mock.submitted || !mock.deadline)return;
+      const sec=Math.max(0,Math.ceil((mock.deadline-Date.now())/1000));
+      clockText.textContent=Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0');
+      if(!sec)commitMock();
+    };
+    const skip=element('input');
+    skip.type='checkbox'; skip.checked=mock.skipListening;
+    const skipLabel=element('label','本次不做听力');
+    skipLabel.prepend(skip);
+    skip.addEventListener('change',()=>{
+      mock.skipListening=skip.checked;
+      saveMock();
+      if(part.id==='L' && mock.skipListening) location.hash='#mock/'+record.id+'/R';
+      else route();
+    });
+    actions.append(skipLabel,clockText);
+    if(!mock.deadline)actions.append(button('开始计时',()=>{
+      mock.deadline=Date.now()+130*60*1000;
+      saveMock();
+      route();
+    }));
+    actions.append(button('交卷并复盘',()=>{
+      if(confirm('提交整套模考并查看参考答案？'))commitMock();
+    },'primary'));
+    panel.append(actions);
+    if(mock.deadline) {
+      clock=setInterval(refreshClock,250);
+      setTimeout(refreshClock,0);
+    }
+    return panel;
+  }
 
   function element(tag, text, className) {
     const node = document.createElement(tag);
@@ -64,6 +156,11 @@
   }
 
   function save() {
+    if(mock) {
+      mock.parts[part.id]=state;
+      saveMock();
+      return;
+    }
     try {
       localStorage.setItem(key(),JSON.stringify(state));
       status.textContent = '已保存到当前浏览器';
@@ -71,10 +168,16 @@
   }
 
   function route() {
-    const [id, code] = location.hash.replace(/^#/, '').split('/');
-    record = catalog.find(row=>row.id===id);
-    part = record?.parts.find(row=>row.id===code);
-    state = part ? restore() : null;
+    clearInterval(clock);
+    const hash=location.hash.slice(1);
+    const full=hash.startsWith('mock/');
+    const [id,code]=hash.replace(/^mock\//,'').split('/');
+    record=catalog.find(row=>row.id===id && (full?row.mode==='full-mock':row.mode==='practice'));
+    mock=record && full ? loadMock(id) : null;
+    part=record?.parts.find(row=>row.id===code && !(row.id==='L'&&mock?.skipListening));
+    if(mock&&!part)part=record.parts[0];
+    state=mock ? (mock.parts[part.id]??=fresh()) : part ? restore() : null;
+    if(mock)state.submitted=mock.submitted;
     clearUrls();
     status.textContent = '';
     if (part) renderPart();
@@ -90,12 +193,21 @@
   }
 
   function renderCatalog() {
-    main.replaceChildren(heading('六级专项练习'));
-    main.append(element('p','按原卷实际提供的部分练习。每个专项单独作答、计分和复盘。','intro'));
+    const full=location.hash==='#full';
+    const entries=catalog.filter(row=>full?row.mode==='full-mock':row.mode==='practice');
+    main.replaceChildren(heading(full?'历年原卷模考':'六级专项练习'));
+    const views=element('nav',undefined,'part-links catalog-views');
+    for(const [href,title] of [['#','原卷专项'],['#full','历年原卷模考']]){
+      const link=element('a',title);
+      link.href=href;
+      if((href==='#full')===full)link.setAttribute('aria-current','page');
+      views.append(link);
+    }
+    main.append(views,element('p',full?'2016—2019 年原卷 · 整套计时、交卷和复盘。':'按原卷实际提供的部分练习。每个专项独立作答和复盘。','intro'));
     const list = element('div');
     const filter = element('select');
     filter.setAttribute('aria-label','选择年份');
-    const years = [...new Set(catalog.map(row=>row.id.slice(0,4)))].sort().reverse();
+    const years = [...new Set(entries.map(row=>row.id.slice(0,4)))].sort().reverse();
     for (const year of ['', ...years]) {
       const choice = element('option',year || '全部年份');
       choice.value = year;
@@ -105,15 +217,21 @@
       list.replaceChildren();
       for (const year of years.filter(y=>!filter.value || y===filter.value)) {
         list.append(element('h2',year,'year'));
-        for (const row of catalog.filter(r=>r.id.startsWith(year)).sort((a,b)=>b.id.localeCompare(a.id))) {
+        for (const row of entries.filter(r=>r.id.startsWith(year)).sort((a,b)=>b.id.localeCompare(a.id))) {
           const item = element('article',undefined,'edition');
           item.append(element('h3',row.title));
           const menu = element('nav',undefined,'part-links');
           menu.setAttribute('aria-label',row.title+'的专项');
-          for (const p of row.parts) {
-            const link = element('a',labels[p.id]);
-            link.href = `#${row.id}/${p.id}`;
+          if(full){
+            const link=element('a','开始模考');
+            link.href='#mock/'+row.id+'/W';
             menu.append(link);
+          } else {
+            for(const p of row.parts){
+              const link=element('a',labels[p.id]);
+              link.href='#'+row.id+'/'+p.id;
+              menu.append(link);
+            }
           }
           item.append(menu);
           if (row.tags.length) item.append(element('p',row.tags.join(' · '),'quiet'));
@@ -147,9 +265,10 @@
 
   function renderPart() {
     main.replaceChildren();
-    const back = element('a','返回专项列表','back');
-    back.href = '#';
-    main.append(back,heading(record.title),element('p',labels[part.id]+'专项','intro'));
+    const back=element('a',mock?'返回历年模考':'返回专项列表','back');
+    back.href=mock?'#full':'#';
+    main.append(back,heading(record.title),element('p',labels[part.id]+(mock?' · 完整模考':'专项'),'intro'));
+    if(mock)main.append(mockHeader());
     if (record.tags.length) main.append(element('p',record.tags.join(' · '),'quiet'));
     if (part.audio) {
       const audio = element('audio');
@@ -174,6 +293,15 @@
       review.append(refs.box);
       review.addEventListener('toggle',()=>{if(review.open)refs.activate();});
       main.append(review);
+    }
+    if(mock) {
+      if(mock.submitted)form.append(button('重新模考',()=>{
+        if(!confirm('清空这套模考的本次作答，重新练习？'))return;
+        mock={parts:{},deadline:null,submitted:false,skipListening:false};
+        saveMock();
+        route();
+      }));
+      return;
     }
     form.append(state.submitted ? button('重新练习',()=>{
       if (!confirm('清空本专项的本次作答，重新练习？')) return;
@@ -235,6 +363,7 @@
       state.rating=rating.value?Number(rating.value):null;
       score.textContent=state.rating?format(state.rating*7.1)+' / 106.5 分':'';
       save();
+      if(mock)main.querySelector('.mock-panel').replaceWith(mockHeader());
     });
     label.append(rating);
     form.append(label,score);

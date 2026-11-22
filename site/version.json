@@ -20,9 +20,12 @@
   "cet6": {
     "url": "./cet6/",
     "acceptedFullMocks": 27,
-    "practice": 20,
+    "practice": 34,
     "publishedAt": "2026-11-15",
     "practiceUrl": "./cet6/practice/",
-    "practicePublishedAt": "2026-11-22"
+    "practicePublishedAt": "2026-11-22",
+    "legacyFullMocks": 15,
+    "fullMocksTotal": 42,
+    "legacyFullMocksUrl": "./cet6/practice/#full"
   }
 }
