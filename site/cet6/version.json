@@ -10,9 +10,9 @@
   "mediaCount": 27,
   "displayHeaderCorrections": 20,
   "wordBankDisplayAliases": 60,
-  "practiceUrl": "./practice/",
   "practicePublishedAt": "2026-11-22",
   "legacyFullMocks": 15,
   "fullMocksTotal": 42,
-  "legacyFullMocksUrl": "./practice/#full"
+  "legacyFullMocksUrl": "./#catalog=full",
+  "practiceEntry": "subject-catalog"
 }
