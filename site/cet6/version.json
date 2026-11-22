@@ -1,7 +1,7 @@
 {
   "examType": "CET6",
   "fullMocks": 27,
-  "practice": 0,
+  "practice": 20,
   "releaseDate": "2026-11-15",
   "author": "敲两下看看",
   "socialId": "JowittTaps",
@@ -9,5 +9,7 @@
   "lazyPaperContent": true,
   "mediaCount": 27,
   "displayHeaderCorrections": 20,
-  "wordBankDisplayAliases": 60
+  "wordBankDisplayAliases": 60,
+  "practiceUrl": "./practice/",
+  "practicePublishedAt": "2026-11-22"
 }
